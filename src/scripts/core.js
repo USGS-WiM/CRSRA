@@ -921,8 +921,9 @@ require([
             $("#calculateStats").prop('disabled', true);
             //clear the feature set
             customAreaParams = { "inputPoly":null };
+            customAreaFeatureArray = [];
         });
-        zonalStatsGP = new Geoprocessor("http://gis.wim.usgs.gov/arcgis/rest/services/WLERA/zonalStats/GPServer/WLERAZonalStats");
+        zonalStatsGP = new Geoprocessor("http://gis.wim.usgs.gov/arcgis/rest/services/GLCWRA/CRSRAZonalStats/GPServer/CRSRAZonalStats");
         zonalStatsGP.setOutputSpatialReference({wkid:102100});
         zonalStatsGP.on("execute-complete", displayCustomStatsResults);
         $('#calculateStats').click(function () {
@@ -1003,7 +1004,7 @@ require([
         legendLayers.push({layer:studyAreaLayer , title:" "});
         studyAreaLayer.inLegendLayers = true;
 
-        const GLRIWetlandsLayer = new ArcGISDynamicMapServiceLayer(mapServiceRoot + "CRSRA_reference/MapServer", {id: "GLRIWetlands", visible:true, minScale: 2000000, maxScale: 10000 } );
+        const GLRIWetlandsLayer = new ArcGISDynamicMapServiceLayer(mapServiceRoot + "CRSRA_reference/MapServer", {id: "GLRIWetlands", visible:true, minScale: 100000, maxScale: 10000 } );
         GLRIWetlandsLayer.setVisibleLayers([2]);
         mapLayers.push(GLRIWetlandsLayer);
         //mapLayerIds.push(GLRIWetlandsLayer.id);
@@ -1024,7 +1025,7 @@ require([
         });
         //const aerialsLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "reference/MapServer", {id: "aerials", visible:false} );
         //aerialsLayer.setVisibleLayers([2]);
-        var aerialsLayer = new FeatureLayer(mapServiceRoot + "CRSRA_reference/MapServer/1", {id: "aerials", layerID: "aerials", visible:true, minScale:2000000, mode: FeatureLayer.MODE_ONDEMAND, outFields: ["*"], infoTemplate: aerialsPopup});
+        var aerialsLayer = new FeatureLayer(mapServiceRoot + "CRSRA_reference/MapServer/1", {id: "aerials", layerID: "aerials", visible:false, minScale:100000, mode: FeatureLayer.MODE_ONDEMAND, outFields: ["*"], infoTemplate: aerialsPopup});
         aerialsLayer.id = "aerials";
         mapLayers.push(aerialsLayer);
         mapLayerIds.push(aerialsLayer.id);
