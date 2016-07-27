@@ -7,20 +7,21 @@ var del = require('del');
 var less = require('gulp-less');
 var path = require('path');
 var wiredep = require('wiredep').stream;
+var useref = require('gulp-useref');
 
 // Load plugins
 var gulpLoadPlugins = require('gulp-load-plugins');
 var plugins = gulpLoadPlugins();
 
-//only get esri api if needed
-
-    var esrislurp = require('esrislurp');
-    gulp.task('download-esri-api', function(cb) {
-        esrislurp('src/lib/esri', '3.13', 'false', cb);
-    });
-
-
-//copy leaflet images
+// //only get esri api if needed
+//
+//     var esrislurp = require('esrislurp');
+//     gulp.task('download-esri-api', function(cb) {
+//         esrislurp('src/lib/esri', '3.13', 'false', cb);
+//     });
+//
+//
+// //copy leaflet images
 
 //less compilation
 gulp.task('less', function () {
@@ -61,16 +62,16 @@ gulp.task('html', ['styles', 'scripts', 'icons'], function () {
 
     return gulp.src('src/*.html')
 
-    .pipe(plugins.useref())
-    .pipe(jsFilter)
-    .pipe(plugins.uglify())
-    .pipe(jsFilter.restore())
-    .pipe(cssFilter)
-    .pipe(plugins.csso())
-    .pipe(cssFilter.restore())
-    //.pipe(rename({ extname: '.min.js' }))
-    .pipe(gulp.dest('build'))
-    .pipe(plugins.size());
+        .pipe(useref())
+        .pipe(jsFilter)
+        .pipe(plugins.uglify())
+        .pipe(jsFilter.restore())
+        .pipe(cssFilter)
+        .pipe(plugins.csso())
+        .pipe(cssFilter.restore())
+        //.pipe(rename({ extname: '.min.js' }))
+        .pipe(gulp.dest('build'));
+    //.pipe(plugins.size());
 });
 
 // Images
@@ -87,7 +88,7 @@ gulp.task('clean', function (cb) {
     del([
         'build/styles/**',
         'build/scripts/**',
-        'build/images/**',
+        'build/images/**'
     ], cb);
 });
 
