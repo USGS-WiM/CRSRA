@@ -9,6 +9,7 @@ var crsra = crsra || {
             {"id":"ottawa-nwr", "name":"Ottawa NWR", "userCreated": false, spatialReference:{"wkid":102100}, "xmax":-9253627.864758775,"xmin":-9268896.161158718,"ymax":5109457.058192252,"ymin":5099759.110228584}
         ],
         globals: {
+            mapCenter: [-82.7863, 42.5864]
 
         }
     };
@@ -32,7 +33,7 @@ require([
     "esri/dijit/Measurement",
     "esri/dijit/Bookmarks",
     'esri/layers/ArcGISTiledMapServiceLayer',
-    'esri/dijit/Geocoder',
+    "esri/dijit/Search",
     "esri/dijit/Popup",
     'esri/dijit/PopupTemplate',
     'esri/graphic',
@@ -68,7 +69,7 @@ require([
     Measurement,
     Bookmarks,
     ArcGISTiledMapServiceLayer,
-    Geocoder,
+    Search,
     Popup,
     PopupTemplate,
     Graphic,
@@ -104,7 +105,7 @@ require([
 
     map = new Map('mapDiv', {
         basemap: 'gray',
-        center: [-82.7863, 42.5864],
+        center: crsra.globals.mapCenter,
         spatialReference: 26917,
         zoom: 9,
         logo: false,
@@ -112,7 +113,7 @@ require([
         infoWindow: popup
     });
 
-    //esriConfig.defaults.geometryService = new esri.tasks.GeometryService("http://wlera.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
+    //esriConfig.defaults.geometryService = new esri.tasks.GeometryService("http://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
     esriConfig.defaults.geometryService = new GeometryService("http://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
     esri.config.defaults.io.corsEnabledServers.push("http://gis.wim.usgs.gov/");
 
@@ -266,7 +267,7 @@ require([
         var encodedShareQueryString = "%3Fxmax=" + currentMapExtent.xmax.toString() + "%26xmin=" + currentMapExtent.xmin.toString() + "%26ymax=" + currentMapExtent.ymax.toString() + "%26ymin=" + currentMapExtent.ymin.toString();
         //var cleanURL = document.location.href;
         //below line for local testing only. replace with above line for production
-        var cleanURL = "http://wlera.wim.usgs.gov/crsra/";
+        var cleanURL = "http://glcwra.wim.usgs.gov/crsra/";
         var shareURL = cleanURL + shareQueryString;
         var encodedShareURL = cleanURL + encodedShareQueryString;
         console.log("Share URL is:" + shareURL);
@@ -396,111 +397,122 @@ require([
     on(dom.byId('btnNatlMap'), 'click', function () {
         nationalMapBasemap.setVisibility(true);
     });
-    var geocoder = new Geocoder({
-        value: '',
-        maxLocations: 25,
-        autoComplete: true,
-        arcgisGeocoder: true,
-        autoNavigate: false,
+
+    //search widget used for geosearch
+    var search = new Search({
         map: map
-    }, 'geosearch');
-    geocoder.startup();
-    geocoder.on('select', geocodeSelect);
-    geocoder.on('findResults', geocodeResults);
-    geocoder.on('clear', clearFindGraphics);
-    on(geocoder.inputNode, 'keydown', function (e) {
-        if (e.keyCode == 13) {
-            setSearchExtent();
-        }
-    });
-    // map pin symbol for geosearch
-    var sym = createPictureSymbol('images/purple-pin.png', 0, 12, 13, 24);
-    map.on('load', function (){
-        map.infoWindow.set('highlight', false);
-        map.infoWindow.set('titleInBody', false);
-    });
-    // Geosearch functions
-    on(dom.byId('btnGeosearch'),'click', geosearch);
-    // Optionally confine search to map extent
-    function setSearchExtent (){
-        if (dom.byId('chkExtent').checked == 1) {
-            geocoder.activeGeocoder.searchExtent = map.extent;
-        } else {
-            geocoder.activeGeocoder.searchExtent = null;
-        }
-    }
-    function geosearch() {
-        setSearchExtent();
-        var def = geocoder.find();
-        def.then(function (res){
-            geocodeResults(res);
-        });
-        // Close modal
+    }, "geosearch");
+    search.startup();
+    //close geoserach modal when search result is selectec
+    on(search,'search-results', function(e) {
         $('#geosearchModal').modal('hide');
-    }
-    function geocodeSelect(item) {
-        clearFindGraphics();
-        var g = (item.graphic ? item.graphic : item.result.feature);
-        g.setSymbol(sym);
-        addPlaceGraphic(item.result,g.symbol);
-        // Close modal
-        //$('#geosearchModal').modal('hide');
-    }
-    function geocodeResults(places) {
-        places = places.results;
-        if (places.length > 0) {
-            clearFindGraphics();
-            var symbol = sym;
-            // Create and add graphics with pop-ups
-            for (var i = 0; i < places.length; i++) {
-                addPlaceGraphic(places[i], symbol);
-            }
-            zoomToPlaces(places);
-        } else {
-            //alert('Sorry, address or place not found.');  // TODO
-        }
-    }
-    function stripTitle(title) {
-        var i = title.indexOf(',');
-        if (i > 0) {
-            title = title.substring(0,i);
-        }
-        return title;
-    }
-    function addPlaceGraphic(item,symbol)  {
-        var place = {};
-        var attributes,infoTemplate,pt,graphic;
-        pt = item.feature.geometry;
-        place.address = item.name;
-        place.score = item.feature.attributes.Score;
-        // Graphic components
-        attributes = { address:stripTitle(place.address), score:place.score, lat:pt.getLatitude().toFixed(2), lon:pt.getLongitude().toFixed(2) };
-        infoTemplate = new PopupTemplate({title:'{address}', description: 'Latitude: {lat}<br/>Longitude: {lon}'});
-        graphic = new Graphic(pt,symbol,attributes,infoTemplate);
-        // Add to map
-        map.graphics.add(graphic);
-    }
-    function zoomToPlaces(places) {
-        var multiPoint = new Multipoint(map.spatialReference);
-        for (var i = 0; i < places.length; i++) {
-            multiPoint.addPoint(places[i].feature.geometry);
-        }
-        map.setExtent(multiPoint.getExtent().expand(2.0));
-    }
-    function clearFindGraphics() {
-        map.infoWindow.hide();
-        map.graphics.clear();
-    }
-    function createPictureSymbol(url, xOffset, yOffset, xWidth, yHeight) {
-        return new PictureMarkerSymbol(
-            {
-                'angle': 0,
-                'xoffset': xOffset, 'yoffset': yOffset, 'type': 'esriPMS',
-                'url': url,
-                'contentType': 'image/png',
-                'width':xWidth, 'height': yHeight
-            });
-    }
+    });
+
+    // var geocoder = new Geocoder({
+    //     value: '',
+    //     maxLocations: 25,
+    //     autoComplete: true,
+    //     arcgisGeocoder: true,
+    //     autoNavigate: false,
+    //     map: map
+    // }, 'geosearch');
+    // geocoder.startup();
+    // geocoder.on('select', geocodeSelect);
+    // geocoder.on('findResults', geocodeResults);
+    // geocoder.on('clear', clearFindGraphics);
+    // on(geocoder.inputNode, 'keydown', function (e) {
+    //     if (e.keyCode == 13) {
+    //         setSearchExtent();
+    //     }
+    // });
+    // // map pin symbol for geosearch
+    // var sym = createPictureSymbol('images/purple-pin.png', 0, 12, 13, 24);
+    // map.on('load', function (){
+    //     map.infoWindow.set('highlight', false);
+    //     map.infoWindow.set('titleInBody', false);
+    // });
+    // // Geosearch functions
+    // on(dom.byId('btnGeosearch'),'click', geosearch);
+    // // Optionally confine search to map extent
+    // function setSearchExtent (){
+    //     if (dom.byId('chkExtent').checked == 1) {
+    //         geocoder.activeGeocoder.searchExtent = map.extent;
+    //     } else {
+    //         geocoder.activeGeocoder.searchExtent = null;
+    //     }
+    // }
+    // function geosearch() {
+    //     setSearchExtent();
+    //     var def = geocoder.find();
+    //     def.then(function (res){
+    //         geocodeResults(res);
+    //     });
+    //     // Close modal
+    //     $('#geosearchModal').modal('hide');
+    // }
+    // function geocodeSelect(item) {
+    //     clearFindGraphics();
+    //     var g = (item.graphic ? item.graphic : item.result.feature);
+    //     g.setSymbol(sym);
+    //     addPlaceGraphic(item.result,g.symbol);
+    //     // Close modal
+    //     //$('#geosearchModal').modal('hide');
+    // }
+    // function geocodeResults(places) {
+    //     places = places.results;
+    //     if (places.length > 0) {
+    //         clearFindGraphics();
+    //         var symbol = sym;
+    //         // Create and add graphics with pop-ups
+    //         for (var i = 0; i < places.length; i++) {
+    //             addPlaceGraphic(places[i], symbol);
+    //         }
+    //         zoomToPlaces(places);
+    //     } else {
+    //         //alert('Sorry, address or place not found.');  // TODO
+    //     }
+    // }
+    // function stripTitle(title) {
+    //     var i = title.indexOf(',');
+    //     if (i > 0) {
+    //         title = title.substring(0,i);
+    //     }
+    //     return title;
+    // }
+    // function addPlaceGraphic(item,symbol)  {
+    //     var place = {};
+    //     var attributes,infoTemplate,pt,graphic;
+    //     pt = item.feature.geometry;
+    //     place.address = item.name;
+    //     place.score = item.feature.attributes.Score;
+    //     // Graphic components
+    //     attributes = { address:stripTitle(place.address), score:place.score, lat:pt.getLatitude().toFixed(2), lon:pt.getLongitude().toFixed(2) };
+    //     infoTemplate = new PopupTemplate({title:'{address}', description: 'Latitude: {lat}<br/>Longitude: {lon}'});
+    //     graphic = new Graphic(pt,symbol,attributes,infoTemplate);
+    //     // Add to map
+    //     map.graphics.add(graphic);
+    // }
+    // function zoomToPlaces(places) {
+    //     var multiPoint = new Multipoint(map.spatialReference);
+    //     for (var i = 0; i < places.length; i++) {
+    //         multiPoint.addPoint(places[i].feature.geometry);
+    //     }
+    //     map.setExtent(multiPoint.getExtent().expand(2.0));
+    // }
+    // function clearFindGraphics() {
+    //     map.infoWindow.hide();
+    //     map.graphics.clear();
+    // }
+    // function createPictureSymbol(url, xOffset, yOffset, xWidth, yHeight) {
+    //     return new PictureMarkerSymbol(
+    //         {
+    //             'angle': 0,
+    //             'xoffset': xOffset, 'yoffset': yOffset, 'type': 'esriPMS',
+    //             'url': url,
+    //             'contentType': 'image/png',
+    //             'width':xWidth, 'height': yHeight
+    //         });
+    // }
     function printMap() {
         var printParams = new PrintParameters();
         printParams.map = map;
@@ -531,14 +543,14 @@ require([
             template.layoutOptions = {
                 "titleText": "Connecting River Systems Restoration Assessment - Provisional Data",
                 "authorText" : "Connecting River Systems Restoration Assessment (CRSRA)",
-                "copyrightText": "This page was produced by the CRSRA web application at wlera.wim.usgs.gov/crsra",
+                "copyrightText": "This page was produced by the CRSRA web application at glcwra.wim.usgs.gov/crsra",
                 "legendLayers": [legendLayer]
             };
         } else {
             template.layoutOptions = {
                 "titleText": userTitle + " - Provisional Data",
                 "authorText" : "Connecting River Systems Restoration Assessment (CRSRA)",
-                "copyrightText": "This page was produced by the CRSRA web application at wlera.wim.usgs.gov/crsra",
+                "copyrightText": "This page was produced by the CRSRA web application at glcwra.wim.usgs.gov/crsra",
                 "legendLayers": [legendLayer]
             };
         }
@@ -1204,7 +1216,7 @@ require([
                 //logic to zoom to layer center
                 //var layerCenter = map.getLayer(layerToChange).fullExtent.getCenter();
                 //map.centerAt(layerCenter);
-                var dataCenter = new Point(-83.208084,41.628103, new SpatialReference({wkid:4326}));
+                var dataCenter = new Point(crsra.globals.mapCenter , new SpatialReference({wkid:4326}));
                 map.centerAt(dataCenter);
             });
 
