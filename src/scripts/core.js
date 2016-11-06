@@ -935,7 +935,6 @@ require([
         var drawCustom =  $('#drawCustom');
 
         drawCustom.click(function(){
-            parcelsFeatLayer.clearSelection();
             map.graphics.remove(customAreaGraphic);
             map.graphics.remove(parcelAreaGraphic);
             $("#displayStats").prop('disabled', true);
@@ -962,31 +961,9 @@ require([
             //selectionToolbar.activate(Draw.POLYGON);
         });
 
-        //jQuery selector variable assignment for select parcels button
-        var selectParcels = $('#selectParcels');
-        selectParcels.click(function(){
-           drawCustom.removeClass("active");
-           drawCustom.html('<span class="ti-pencil-alt2"></span>&nbsp;Draw');
-            drawCustomActive = false;
-            customAreaDraw.deactivate();
-            if (clickSelectionActive) {
-                selectParcels.removeClass("active");
-                selectParcels.html('<span class="ti-plus"></span>&nbsp;&nbsp;Click');
-                map.setMapCursor("auto");
-                clickSelectionActive = false;
-            } else if (!clickSelectionActive) {
-                selectParcels.addClass("active");
-                selectParcels.html('<i class="fa fa-stop"></i>&nbsp;&nbsp;Stop selecting');
-                map.setMapCursor("crosshair");
-                clickRemoveSelectionActive = false;
-                clickSelectionActive = true;
-            }
-        });
 
         $('#clearSelection').click(function(){
-            parcelsFeatLayer.clearSelection();
             map.graphics.remove(customAreaGraphic);
-            map.graphics.remove(parcelAreaGraphic);
             $("#displayStats").prop('disabled', true);
             $("#calculateStats").prop('disabled', true);
             //clear the feature set
@@ -1004,6 +981,7 @@ require([
             //var symbol = new SimpleFillSymbol("none", new SimpleLineSymbol("dashdot", new Color([255,0,0]), 2), new Color([255,255,0,0.25]));
             customAreaSymbol = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID, new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0]), 2), new Color([255, 255, 0, 0.5]));
             customAreaGraphic = new Graphic(customAreaGeometry,customAreaSymbol);
+            customAreaGraphic.setAttributes({"ZONE_ID": 1});
             map.graphics.add(customAreaGraphic);
             customAreaDraw.deactivate();
             drawCustom.removeClass("active");
@@ -1012,39 +990,40 @@ require([
             customAreaFeatureArray.push(customAreaGraphic);
             var featureSet = new FeatureSet();
             featureSet.features = customAreaFeatureArray;
-            customAreaParams = { "inputPoly":featureSet };
+            //customAreaParams = { "inputPoly":featureSet };
+            customAreaParams = { "in_zone_data":featureSet,  "zone_field": "ZONE_ID" };
             $("#calculateStats").prop('disabled', false);
             //zonalStatsGP.execute(customAreaParams);
         });
 
-        //instantiation of Draw element for parcel area draw
-        parcelAreaDraw = new Draw(map);
-        //jQuery selector variable assignment for the draw custom area button
-        var selectParcelsDraw =  $('#selectParcelsDraw');
-
-        selectParcelsDraw.click(function(){
-            map.graphics.remove(parcelAreaGraphic);
-            var currentMapScale = map.getScale();
-            var parcelsScale = map.getLayer('parcelsFeat').minScale;
-            //if active, turn off. if not, turn on
-            if (parcelDrawActive){
-                parcelAreaDraw.finishDrawing();
-                parcelAreaDraw.deactivate();
-                selectParcelsDraw.removeClass("active");
-                selectParcelsDraw.html('<span class="ti-pencil-alt2"></span>&nbsp;Draw');
-                parcelDrawActive = false;
-            } else if (!parcelDrawActive) {
-                if (currentMapScale > parcelsScale ){
-                    $('#parcelSelectScaleAlert').show();
-                } else {
-                    selectParcelsDraw.addClass("active");
-                    selectParcelsDraw.html('<i class="fa fa-stop"></i>&nbsp;&nbsp;Stop drawing');
-                    clickSelectionActive = false;
-                    parcelAreaDraw.activate(Draw.POLYGON);
-                    parcelDrawActive = true;
-                }
-            }
-        });
+        // //instantiation of Draw element for parcel area draw
+        // parcelAreaDraw = new Draw(map);
+        // //jQuery selector variable assignment for the draw custom area button
+        // var selectParcelsDraw =  $('#selectParcelsDraw');
+        //
+        // selectParcelsDraw.click(function(){
+        //     map.graphics.remove(parcelAreaGraphic);
+        //     var currentMapScale = map.getScale();
+        //     var parcelsScale = map.getLayer('parcelsFeat').minScale;
+        //     //if active, turn off. if not, turn on
+        //     if (parcelDrawActive){
+        //         parcelAreaDraw.finishDrawing();
+        //         parcelAreaDraw.deactivate();
+        //         selectParcelsDraw.removeClass("active");
+        //         selectParcelsDraw.html('<span class="ti-pencil-alt2"></span>&nbsp;Draw');
+        //         parcelDrawActive = false;
+        //     } else if (!parcelDrawActive) {
+        //         if (currentMapScale > parcelsScale ){
+        //             $('#parcelSelectScaleAlert').show();
+        //         } else {
+        //             selectParcelsDraw.addClass("active");
+        //             selectParcelsDraw.html('<i class="fa fa-stop"></i>&nbsp;&nbsp;Stop drawing');
+        //             clickSelectionActive = false;
+        //             parcelAreaDraw.activate(Draw.POLYGON);
+        //             parcelDrawActive = true;
+        //         }
+        //     }
+        // });
 
         function displayCustomStatsResults (customStatsResults) {
             $("#calculateStats").button('reset');
@@ -1055,17 +1034,17 @@ require([
             $('#zonalStatsModal').modal('show');
         }
 
-        $('#displayStats').click(function(){
-            $('#zonalStatsTable').html('<tr><th>Parcel ID</th><th>Hectares</th><th>Mean </th><th>Standard Deviation</th><th>Max</th></tr>');
-            //if there are selected parcels, retrieve their zonal stats attributes and append to the table
-            if (map.getLayer('parcelsFeat').getSelectedFeatures().length > 0) {
-                $.each(map.getLayer('parcelsFeat').getSelectedFeatures(), function() {
-                    $('#zonalStatsTable').append('<tr><td>' + this.attributes.P_ID + '</td><td>' + this.attributes.Hec.toFixed(3) + '</td><td>' + this.attributes.MEAN.toFixed(4) + '</td><td>' + this.attributes.STD.toFixed(3) + '</td><td>' + this.attributes.stat_MAX + '</td></tr>');
-                    //$('#zonalStatsTable').append('<tr><td>' + this.attributes.P_ID + '</td><td>' + this.attributes.Hec + '</td><td>' + this.attributes.MEAN + '</td><td>' + this.attributes.STD + '</td><td>' + this.attributes.MAX + '</td></tr>');
-                    $('#zonalStatsModal').modal('show');
-                });
-            }
-        });
+        // $('#displayStats').click(function(){
+        //     $('#zonalStatsTable').html('<tr><th>Parcel ID</th><th>Hectares</th><th>Mean </th><th>Standard Deviation</th><th>Max</th></tr>');
+        //     //if there are selected parcels, retrieve their zonal stats attributes and append to the table
+        //     if (map.getLayer('parcelsFeat').getSelectedFeatures().length > 0) {
+        //         $.each(map.getLayer('parcelsFeat').getSelectedFeatures(), function() {
+        //             $('#zonalStatsTable').append('<tr><td>' + this.attributes.P_ID + '</td><td>' + this.attributes.Hec.toFixed(3) + '</td><td>' + this.attributes.MEAN.toFixed(4) + '</td><td>' + this.attributes.STD.toFixed(3) + '</td><td>' + this.attributes.stat_MAX + '</td></tr>');
+        //             //$('#zonalStatsTable').append('<tr><td>' + this.attributes.P_ID + '</td><td>' + this.attributes.Hec + '</td><td>' + this.attributes.MEAN + '</td><td>' + this.attributes.STD + '</td><td>' + this.attributes.MAX + '</td></tr>');
+        //             $('#zonalStatsModal').modal('show');
+        //         });
+        //     }
+        // });
 
         const studyAreaLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "CRSRA/MapServer", {id: "studyArea", visible:true} );
         studyAreaLayer.setVisibleLayers([0]);
