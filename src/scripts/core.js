@@ -935,6 +935,7 @@ require([
         var drawCustom =  $('#drawCustom');
 
         drawCustom.click(function(){
+            customAreaFeatureArray = [];
             map.graphics.remove(customAreaGraphic);
             map.graphics.remove(parcelAreaGraphic);
             $("#displayStats").prop('disabled', true);
@@ -990,8 +991,10 @@ require([
             customAreaFeatureArray.push(customAreaGraphic);
             var featureSet = new FeatureSet();
             featureSet.features = customAreaFeatureArray;
-            //customAreaParams = { "inputPoly":featureSet };
-            customAreaParams = { "in_zone_data":featureSet,  "zone_field": "ZONE_ID" };
+            //the variable below that featureSet is assigned to is critical for the service. it is defined by the service itself.
+            //at one point it was renamed to "in_zone_data" and when it switched back to "inputPoly" the service call broke for all 3 apps.
+            customAreaParams = { "inputPoly":featureSet,  "zone_field": "ZONE_ID" };
+            //customAreaParams = { "in_zone_data":featureSet,  "zone_field": "ZONE_ID" };
             $("#calculateStats").prop('disabled', false);
             //zonalStatsGP.execute(customAreaParams);
         });
@@ -1075,7 +1078,7 @@ require([
         vegLayer.id = "veg";
         mapLayers.push(vegLayer);
         mapLayerIds.push(vegLayer.id);
-        legendLayers.push({layer:vegLayer , title:"Veg IBI Value"});
+        legendLayers.push({layer:vegLayer , title:" Wetland Biological Integrity (IBI score)"});
         vegLayer.inLegendLayers = true;
 
         var aerialsPopup = new PopupTemplate({
@@ -1321,6 +1324,7 @@ require([
             map: map,
             layerInfos: legendLayers
         }, "legendDiv");
+        legend.refresh(legendLayers);
         legend.startup();
     });//end of require statement containing legend building code
 });

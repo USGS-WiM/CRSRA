@@ -666,8 +666,10 @@ input[type="checkbox"], input[type="radio"] {
 }
 
 .esriLegendServiceLabel{
-    display: none;
+    /*display: none;*/
+    font-weight: normal !important;
 }
+
 
 #IEwarningModal {
     display:none;
