@@ -1,6 +1,6 @@
 {
-  "name": "wlera",
-  "description": "western lake erie restoration assessment web application",
+  "name": "crsra",
+  "description": "connecting river systems restoration assessment web application",
   "version": "0.0.1",
   "dependencies": {
     "jquery": "^2.1.3",
