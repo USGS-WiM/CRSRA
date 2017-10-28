@@ -542,14 +542,14 @@ require([
         //if user does not provide title, use default. otherwise apply user title
         if (userTitle === "") {
             template.layoutOptions = {
-                "titleText": "Connecting River Systems Restoration Assessment - Provisional Data",
+                "titleText": "Connecting River Systems Restoration Assessment",
                 "authorText" : "Connecting River Systems Restoration Assessment (CRSRA)",
                 "copyrightText": "This page was produced by the CRSRA web application at glcwra.wim.usgs.gov/crsra",
                 "legendLayers": [legendLayer]
             };
         } else {
             template.layoutOptions = {
-                "titleText": userTitle + " - Provisional Data",
+                "titleText": userTitle,
                 "authorText" : "Connecting River Systems Restoration Assessment (CRSRA)",
                 "copyrightText": "This page was produced by the CRSRA web application at glcwra.wim.usgs.gov/crsra",
                 "legendLayers": [legendLayer]
