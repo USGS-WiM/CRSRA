@@ -1,7 +1,7 @@
 {
   "name": "crsra",
   "version": "0.0.0",
-  "description": "",
+  "description": "Connecting River Systems Restoration assessment web application",
   "repository": {
     "type": "git",
     "url": "https://glcwra.wim.usgs.gov/crsra/"
