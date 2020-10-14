@@ -3,7 +3,7 @@
     "name": "CRSRA",
     "organization": "U.S. Geological Survey",
     "description": "Web interface for the Connescting River Systems Restoration Area of the Great Lakes Coastal Restoration Assessment project",
-    "version": "v0.0.0",
+    "version": "v1.0.0",
     "status": "Production",
     "permissions": {
       "usageType": "openSource",
@@ -14,9 +14,9 @@
         }
       ]
     },
-    "homepageURL": "https://wim.usgs.gov",
+    "homepageURL": "https://glcwra.wim.usgs.gov/crsra/",
     "downloadURL": "https://github.com/USGS-WiM/CRSRA/archive/master.zip",
-    "disclaimerURL": "https://github.com/USGS-WiM/CRSRA/blob/master/LICENSE.md",
+    "disclaimerURL": "https://github.com/USGS-WiM/CRSRA/blob/master/DISCLAIMER.md",
     "repositoryUrl": "https://github.com/USGS-WiM/CRSRA",
     "vcs": "git",
     "laborHours": null,
@@ -55,7 +55,7 @@
     ],
     "date": {
       "lastModified": "2017-10-28",
-      "metadataLastUpdated": "2017-10-28"
+      "metadataLastUpdated": "2017-11-28"
     }
   }
 ]
