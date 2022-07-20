@@ -115,8 +115,8 @@ require([
     });
 
     //esriConfig.defaults.geometryService = new esri.tasks.GeometryService("http://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
-    esriConfig.defaults.geometryService = new GeometryService("https://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
-    esri.config.defaults.io.corsEnabledServers.push("https://gis.wim.usgs.gov/");
+    esriConfig.defaults.geometryService = new GeometryService("https://gis1.wim.usgs.gov/server/rest/services/Utilities/Geometry/GeometryServer");
+    esri.config.defaults.io.corsEnabledServers.push("https://gis1.wim.usgs.gov/");
 
     const home = new HomeButton({
         map: map
@@ -607,7 +607,7 @@ require([
         var docTitle = template.layoutOptions.titleText;
         printParams.template = template;
 
-        var printMap = new PrintTask("https://gis.wim.usgs.gov/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task");
+        var printMap = new PrintTask("https://gis1.wim.usgs.gov/server/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task");
         printMap.execute(printParams, printDone, printError);
 
         function printDone(event) {
@@ -943,8 +943,8 @@ require([
         var customAreaParams = { "inputPoly":null };
         var customAreaFeatureArray = [];
 
-        const mapServiceRoot= "https://gis.wim.usgs.gov/arcgis/rest/services/GLCWRA/";
-        const geomService = new GeometryService("https://gis.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer");
+        const mapServiceRoot= "https://gis1.wim.usgs.gov/server/rest/services/GLCWRA/";
+        const geomService = new GeometryService("https://gis1.wim.usgs.gov/server/rest/services/Utilities/Geometry/GeometryServer");
 
         const normRestorationIndexLayer =  new ArcGISDynamicMapServiceLayer(mapServiceRoot + "CRSRA/MapServer", {id: "normalized", visible:true} );
         normRestorationIndexLayer.setVisibleLayers([4]);
@@ -1020,7 +1020,7 @@ require([
             customAreaParams = { "inputPoly":null };
             customAreaFeatureArray = [];
         });
-        zonalStatsGP = new Geoprocessor("https://gis.wim.usgs.gov/arcgis/rest/services/GLCWRA/CRSRAZonalStats/GPServer/CRSRAZonalStats");
+        zonalStatsGP = new Geoprocessor("https://gis1.wim.usgs.gov/server/rest/services/GLCWRA/CRSRAZonalStats/GPServer/CRSRAZonalStats");
         zonalStatsGP.setOutputSpatialReference({wkid:102100});
         zonalStatsGP.on("execute-complete", displayCustomStatsResults);
         $('#calculateStats').click(function () {
